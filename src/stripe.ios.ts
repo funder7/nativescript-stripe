@@ -158,15 +158,23 @@ export class Stripe {
    *. Private
    */
 
-  private _getAuthentificationContext(): STPPaymentContext {
-    const authContext = STPPaymentContext.alloc();
+  private _getAuthentificationContext(): STPAuthenticationContext {
     const rootVC = Frame.topmost().currentPage.ios;
-
-    authContext.hostViewController = Utils.ios.getVisibleViewController(rootVC);
-    authContext.authenticationPresentingViewController = () => {
-      return authContext.hostViewController;
-    };
-    return authContext;
+    //@ts-ignore
+    const Delegate = NSObject.extend({
+      authenticationPresentingViewController: function() {
+        return this._viewController;
+      }
+    }, {
+      name: "AuthenticationContextDelegate",
+      protocols: [STPAuthenticationContext]
+    })
+    Delegate.initWithViewController = function(viewController) {
+      const delegate = Delegate.new();
+      delegate._viewController = viewController;
+      return delegate;
+    }
+    return Delegate.initWithViewController(Utils.ios.getVisibleViewController(rootVC));
   }
 }
 
@@ -640,9 +648,8 @@ export class StripeSetupIntentParams {
   native: STPSetupIntentConfirmParams;
 
   constructor(paymentMethodId: string, clientSecret: string) {
-    this.native = STPSetupIntentConfirmParams.alloc();
+    this.native = STPSetupIntentConfirmParams.alloc().initWithClientSecret(clientSecret);
     this.native.paymentMethodID = paymentMethodId;
-    this.native.clientSecret = clientSecret;
   }
 }
 
