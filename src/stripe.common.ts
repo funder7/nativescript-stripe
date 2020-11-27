@@ -1,6 +1,17 @@
-import { View } from '@nativescript/core';
+import { View, EventData } from '@nativescript/core';
 
-export class CreditCardViewBase extends View { }
+export type TextChangedEventData = EventData & { valid:boolean };
+
+export class CreditCardViewBase extends View {
+  static textChangedEvent = "textChanged";
+  protected notifyTextChanged(valid: boolean): void {
+    this.notify({
+      eventName: CreditCardViewBase.textChangedEvent,
+      object: this,
+      valid
+    });
+  }
+}
 
 export type CardBrand =
   | 'Visa'

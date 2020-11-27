@@ -73,6 +73,8 @@ export declare class CreditCardView extends CreditCardViewBase {
   readonly card: Card;
 }
 
+export declare type TextChangedEventData = EventData & { valid:boolean };
+
 export declare interface Source {
   amount: number; /**in pennies*/
   card: CardCommon;

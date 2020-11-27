@@ -468,11 +468,33 @@ function getBitmapFromResource(resID: number): android.graphics.Bitmap {
 
 export class CreditCardView extends CreditCardViewBase {
   private _widget: com.stripe.android.view.CardInputWidget;
+
   get android(): com.stripe.android.view.CardInputWidget {
     return this._widget;
   }
+
   public createNativeView(): com.stripe.android.view.CardInputWidget {
     this._widget = new com.stripe.android.view.CardInputWidget(this._context);
+    // This can be changed to use setCardValidCallback instead of text watchers
+    // when the stripe library is updated >= 13.1.2
+    // this._widget.setCardValidCallback((isValid: boolean) => {
+    //     this.notifyTextChanged(isValid);
+    // });
+    let considerChange = false;
+    const textWatcher = new android.text.TextWatcher({
+      onTextChanged: () => {
+      },
+      beforeTextChanged: () => {},
+      afterTextChanged: ()  => {
+        if(considerChange) {
+           this.notifyTextChanged(this.card !== null)
+        }
+        considerChange = !considerChange
+      }
+    })
+    this._widget.setCardNumberTextWatcher(textWatcher)
+    this._widget.setCvcNumberTextWatcher(textWatcher)
+    this._widget.setExpiryDateTextWatcher(textWatcher)
     return this._widget;
   }
 

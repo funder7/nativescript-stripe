@@ -482,10 +482,23 @@ export class Card implements CardCommon {
 }
 
 export class CreditCardView extends CreditCardViewBase {
+
   public createNativeView(): STPPaymentCardTextField {
-    return STPPaymentCardTextField.alloc().initWithFrame(
+    const view = STPPaymentCardTextField.alloc().initWithFrame(
       CGRectMake(10, 10, 300, 44)
     );
+
+    //@ts-ignore
+    const Delegate = NSObject.extend({
+      paymentCardTextFieldDidChange: () => {
+        this.notifyTextChanged(this.card !== null);
+      }
+    }, {
+      name: "PaymentCardTextFieldDelegate",
+      protocols: [STPPaymentCardTextFieldDelegate]
+    })
+    view.delegate =  Delegate.new();
+    return view;
   }
 
   /**
