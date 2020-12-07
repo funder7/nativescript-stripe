@@ -1,6 +1,7 @@
 import { Page, EventData, Button, fromObject } from "@nativescript/core";
 import { CreditCardView, Source, Stripe, Token } from "nativescript-stripe";
 import { publishableKey } from "./stripe.service";
+import { TextChangedEventData } from "nativescript-stripe";
 
 let stripe: Stripe;
 let tokenSource = fromObject({ token: "" });
@@ -14,6 +15,10 @@ export function pageLoaded(args: EventData) {
 
   let page = <Page>args.object;
   page.bindingContext = tokenSource;
+}
+
+export function onTextChanged(args: TextChangedEventData) {
+  console.log("Text changed", "Valid?", args.valid)
 }
 
 export function createToken(args: EventData) {

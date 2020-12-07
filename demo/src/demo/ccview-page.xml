@@ -3,7 +3,7 @@
     <ActionBar title="CreditCardView Demo" class="action-bar" />
   </Page.actionBar>
   <StackLayout>
-    <stripe:CreditCardView id="card" />
+    <stripe:CreditCardView id="card" textChanged="onTextChanged" />
     <Button text="Create Token" tap="createToken" class="btn btn-primary"></Button>
     <Button text="Create Source" tap="createSource" class="btn btn-primary"></Button>
     <Label text="{{ token }}" textWrap="true"></Label>

@@ -158,15 +158,23 @@ export class Stripe {
    *. Private
    */
 
-  private _getAuthentificationContext(): STPPaymentContext {
-    const authContext = STPPaymentContext.alloc();
+  private _getAuthentificationContext(): STPAuthenticationContext {
     const rootVC = Frame.topmost().currentPage.ios;
-
-    authContext.hostViewController = Utils.ios.getVisibleViewController(rootVC);
-    authContext.authenticationPresentingViewController = () => {
-      return authContext.hostViewController;
-    };
-    return authContext;
+    //@ts-ignore
+    const Delegate = NSObject.extend({
+      authenticationPresentingViewController: function() {
+        return this._viewController;
+      }
+    }, {
+      name: "AuthenticationContextDelegate",
+      protocols: [STPAuthenticationContext]
+    })
+    Delegate.initWithViewController = function(viewController) {
+      const delegate = Delegate.new();
+      delegate._viewController = viewController;
+      return delegate;
+    }
+    return Delegate.initWithViewController(Utils.ios.getVisibleViewController(rootVC));
   }
 }
 
@@ -474,10 +482,23 @@ export class Card implements CardCommon {
 }
 
 export class CreditCardView extends CreditCardViewBase {
+
   public createNativeView(): STPPaymentCardTextField {
-    return STPPaymentCardTextField.alloc().initWithFrame(
+    const view = STPPaymentCardTextField.alloc().initWithFrame(
       CGRectMake(10, 10, 300, 44)
     );
+
+    //@ts-ignore
+    const Delegate = NSObject.extend({
+      paymentCardTextFieldDidChange: () => {
+        this.notifyTextChanged(this.card !== null);
+      }
+    }, {
+      name: "PaymentCardTextFieldDelegate",
+      protocols: [STPPaymentCardTextFieldDelegate]
+    })
+    view.delegate =  Delegate.new();
+    return view;
   }
 
   /**
@@ -503,7 +524,7 @@ export class CreditCardView extends CreditCardViewBase {
 
   get card(): Card {
     try {
-      const stpCardParams = STPCardParams.alloc();
+      const stpCardParams = STPCardParams.alloc().init();
       stpCardParams.cvc = this.nativeView.cardParams.cvc;
       stpCardParams.number = this.nativeView.cardParams.number;
       stpCardParams.expMonth = this.nativeView.cardParams.expMonth;
@@ -640,9 +661,8 @@ export class StripeSetupIntentParams {
   native: STPSetupIntentConfirmParams;
 
   constructor(paymentMethodId: string, clientSecret: string) {
-    this.native = STPSetupIntentConfirmParams.alloc();
+    this.native = STPSetupIntentConfirmParams.alloc().initWithClientSecret(clientSecret);
     this.native.paymentMethodID = paymentMethodId;
-    this.native.clientSecret = clientSecret;
   }
 }
 
